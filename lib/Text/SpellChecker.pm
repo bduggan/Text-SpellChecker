@@ -4,56 +4,58 @@ Text::SpellChecker - OO interface for spell-checking a block of text
 
 =head1 SYNOPSIS
 
-use Text::SpellChecker;
+    use Text::SpellChecker;
+    ($Text::SpellChecker::pre_hl_word,
+     $Text::SpellChecker::post_hl_word) = (qw([ ]));
 
-my $checker = Text::SpellChecker->new(text => "Foor score and seven yeers ago");
+    my $checker = Text::SpellChecker->new(text => "Foor score and seven yeers ago");
 
-while (my $word = $checker->next_word) {
-    print $checker->highlighted_text, 
-        "\n", 
-        "$word : ",
-        (join "\t", @{$checker->suggestions}),
-        "\nChoose a new word : ";
-    chomp (my $new_word = <STDIN>);
-    $checker->replace(new_word => $new_word) if $new_word;
-}
+    while (my $word = $checker->next_word) {
+        print $checker->highlighted_text, 
+            "\n", 
+            "$word : ",
+            (join "\t", @{$checker->suggestions}),
+            "\nChoose a new word : ";
+        chomp (my $new_word = <STDIN>);
+        $checker->replace(new_word => $new_word) if $new_word;
+    }
 
-print "New text : ".$checker->text."\n";
+    print "New text : ".$checker->text."\n";
 
 --or-- 
 
-use CGI;
-use Text::SpellChecker;
-my $q = new CGI;
-print $q->header,
-      $q->start_html,
-      $q->start_form(-method=>'POST',-action=>$ENV{SCRIPT_NAME});
+    use CGI;
+    use Text::SpellChecker;
+    my $q = new CGI;
+    print $q->header,
+          $q->start_html,
+          $q->start_form(-method=>'POST',-action=>$ENV{SCRIPT_NAME});
 
-my $checker = Text::SpellChecker->new(
-    text => "Foor score and seven yeers ago",
-    from_frozen => $q->param('frozen') # will be false the first time.
-); 
+    my $checker = Text::SpellChecker->new(
+        text => "Foor score and seven yeers ago",
+        from_frozen => $q->param('frozen') # will be false the first time.
+    ); 
 
-$checker->replace(new_word => $q->param('replacement')) 
-    if $q->param('replace');
+    $checker->replace(new_word => $q->param('replacement')) 
+        if $q->param('replace');
 
-if (my $word = $checker->next_word) {
-    print $q->p($checker->highlighted_text),
-        $q->br, 
-        qq|Next word : "$word"|, 
-        $q->br,
-        $q->submit(-name=>'replace',-value=>'replace with:'),
-        $q->popup_menu(-name=>'replacement',-values=>$checker->suggestions),
-        $q->submit(-name=>'skip');
-} else {
-    print "Done.  New text : ".$checker->text;
-}
+    if (my $word = $checker->next_word) {
+        print $q->p($checker->highlighted_text),
+            $q->br, 
+            qq|Next word : "$word"|, 
+            $q->br,
+            $q->submit(-name=>'replace',-value=>'replace with:'),
+            $q->popup_menu(-name=>'replacement',-values=>$checker->suggestions),
+            $q->submit(-name=>'skip');
+    } else {
+        print "Done.  New text : ".$checker->text;
+    }
 
-print $q->hidden(-name => 'frozen',
-                 -value => $checker->serialize,
-                 -override => 1), 
-      $q->end_form, 
-      $q->end_html;
+    print $q->hidden(-name => 'frozen',
+                     -value => $checker->serialize,
+                     -override => 1), 
+          $q->end_form, 
+          $q->end_html;
 
 
 =head1 DESCRIPTION
@@ -82,6 +84,10 @@ overridden for alternative serialization techniques.
 
 Represent the object in its current state.
 
+=item $checker->reset
+
+Reset the checker to the beginning of the text, and clear the list of ignored words.
+
 =item $word = $checker->next_word
 
 Returns the next misspelled word.
@@ -93,6 +99,14 @@ Returns the most recently returned word.
 =item $checker->replace(new_word => $word)
 
 Replace the current word with $word.
+
+=item $checker->ignore_all
+
+Ignore all subsequent occurences of the current word.
+
+=item $checker->replace_all(new_word => $new_word)
+
+Replace all subsequent occurences of the current word with a new word.
 
 =item $checker->suggestions
 
@@ -113,7 +127,7 @@ $Text::SpellChecker::post_hl_word.
 
 =head1 TODO
 
-Ignore all occurrences of a word, replace all occurrences, add to dictionary
+Add word to custom dictionary
 
 =head1 SEE ALSO
 
@@ -133,7 +147,7 @@ use MIME::Base64;
 use warnings;
 use strict;
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 our $pre_hl_word = qq|<span style="background-color:red;color:white;font-weight:bold;">|;
 our $post_hl_word = "</span>";
@@ -150,7 +164,37 @@ sub new {
     return $class->new_from_frozen($args{from_frozen}) if $args{from_frozen};
     bless {
             text => $args{text},
+            ignore_list => {},    # keys of this hash are words to be ignored
     }, $class;
+}
+
+sub reset {
+    my $self = shift;
+    $self->{position} = undef;
+    $self->{ignore_list} = {};
+}
+
+# Ignore all remaining occurences of the current word.
+
+sub ignore_all {
+    my $self = shift;
+    my $word = $self->current_word or croak "Can't ignore all : no current word";
+    $self->{ignore_list}{$word} = 1;
+}
+
+# Replace all remaining occurences with the given word
+
+sub replace_all {
+    my ($self,%args) = @_;
+    my $new_word = $args{new_word} or croak "no replacement given";
+    my $current = $self->current_word;
+    $self->replace(new_word => $new_word);
+    my $saved_position = $self->{position};
+    while (my $next = $self->next_word) {
+         next unless $next eq $current;
+         $self->replace(new_word => $new_word);
+    }
+    $self->{position} = $saved_position;
 }
 
 #
@@ -176,8 +220,9 @@ sub next_word {
     pos $self->{text} = $self->{position};
     my $word;
     my $sp = Text::Aspell->new;
-    while ($self->{text} =~ m/(\w+)/g) { 
+    while ($self->{text} =~ m/([a-zA-Z]+)/g) { 
         $word = $1;
+        next if $self->{ignore_list}{$word};
         last if !$sp->check($word);
     }
     unless ($self->{position} = pos($self->{text})) {

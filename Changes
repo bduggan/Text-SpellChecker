@@ -1,5 +1,11 @@
 Revision history for Perl extension Text::SpellChecker.
 
-0.01  Mon Nov  1 16:47:36 2004
+0.01  Mon Nov 1 2004
 	- original version
+
+0.02  Thu Nov 4 2004
+    - changed regex for words to [a-zA-Z]+
+    - added ignore_all
+    - added replace_all
+    - added reset
 
