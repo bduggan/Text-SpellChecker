@@ -9,6 +9,5 @@ WriteMakefile(
         'MIME::Base64' => '1'
                          }, 
     ($] >= 5.005 ?   
-      (ABSTRACT_FROM  => 'lib/Text/SpellChecker.pm', 
-       AUTHOR         => 'Brian Duggan <bduggan@matatu.org>') : ()),
+      ( AUTHOR         => 'Brian Duggan <bduggan@matatu.org>') : ()),
 );
