@@ -9,3 +9,6 @@ Revision history for Perl extension Text::SpellChecker.
     - added replace_all
     - added reset
 
+0.03  Tue May 3 2005
+    - update regex to include apostrophes
+
