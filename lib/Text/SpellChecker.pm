@@ -71,9 +71,10 @@ text.
 
 =over 4
 
-=item $checker = Text::SpellChecker->new(text => $text, from_frozen => $serialized_data)
+=item $checker = Text::SpellChecker->new(text => $text, from_frozen => $serialized_data, lang => $lang)
 
-Send either the text or a serialized object to the constructor.
+Send either the text or a serialized object to the constructor.  
+Optionally, the language of the text can also be passed.
 
 =item $checker = new_from_frozen($serialized_data)
 
@@ -111,7 +112,8 @@ Replace all subsequent occurences of the current word with a new word.
 =item $checker->suggestions
 
 Returns a reference to a list of alternatives to the
-current word.
+current word in a scalar context, or the list directly
+in a list context.
 
 =item $checker->text
 
@@ -147,7 +149,7 @@ use MIME::Base64;
 use warnings;
 use strict;
 
-our $VERSION = 0.03;
+our $VERSION = 0.04;
 
 our $pre_hl_word = qq|<span style="background-color:red;color:white;font-weight:bold;">|;
 our $post_hl_word = "</span>";
@@ -165,6 +167,7 @@ sub new {
     bless {
             text => $args{text},
             ignore_list => {},    # keys of this hash are words to be ignored
+            ( lang => $args{lang} ) x !!$args{lang},
     }, $class;
 }
 
@@ -219,7 +222,7 @@ sub next_word {
     my $self = shift;
     pos $self->{text} = $self->{position};
     my $word;
-    my $sp = Text::Aspell->new;
+    my $sp = $self->_aspell;
     while ($self->{text} =~ m/([a-zA-Z]+(?:'[a-zA-Z]+)?)/g) {
         $word = $1;
         next if $self->{ignore_list}{$word};
@@ -232,6 +235,21 @@ sub next_word {
     $self->{suggestions} = [ $sp->suggest($word) ];
     $self->{current_word} = $word;
     return $word;
+}
+
+#
+# Private method returning a Text::Aspell object
+#
+sub _aspell {
+    my $self = shift;
+
+    unless ( $self->{aspell} ) {
+        $self->{aspell} = Text::Aspell->new;
+        $self->{aspell}->set_option( lang => $self->{lang} ) 
+                if $self->{lang};
+    }
+
+    return $self->{aspell};
 }
 
 #
@@ -266,7 +284,13 @@ sub highlighted_text {
 # Some accessors
 #
 sub text         { return $_[0]->{text}; }
-sub suggestions  { return $_[0]->{suggestions};  }
+sub suggestions  { 
+    return unless $_[0]->{suggestions};
+    return wantarray 
+                ? @{$_[0]->{suggestions}} 
+                :   $_[0]->{suggestions} 
+                ;  
+}
 sub current_word { return $_[0]->{current_word};  }
 
 #
@@ -274,7 +298,12 @@ sub current_word { return $_[0]->{current_word};  }
 #
 sub serialize {
    my $self = shift;
-   return encode_base64 freeze $self;
+
+   # remove mention of Aspell object, if any
+   my %copy = %$self;
+   delete $copy{aspell};
+
+   return encode_base64 freeze \%copy;
 }
  
 

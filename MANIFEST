@@ -4,3 +4,4 @@ MANIFEST
 README
 t/Text-SpellChecker.t
 lib/Text/SpellChecker.pm
+META.yml                                 Module meta-data (added by MakeMaker)
