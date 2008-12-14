@@ -12,3 +12,9 @@ Revision history for Perl extension Text::SpellChecker.
 0.03  Tue May 3 2005
     - update regex to include apostrophes
 
+0.04  Sun Dec 14 2008
+    - patch by Yanick Champoux with three changes : 
+    - lang option
+    - cached Text::Aspell object
+    - made suggestions() context-aware
+
