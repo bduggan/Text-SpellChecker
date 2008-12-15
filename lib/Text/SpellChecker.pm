@@ -127,6 +127,11 @@ $Text::SpellChecker::post_hl_word.
 
 =back
 
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
 =head1 TODO
 
 Add word to custom dictionary
@@ -149,7 +154,7 @@ use MIME::Base64;
 use warnings;
 use strict;
 
-our $VERSION = 0.04;
+our $VERSION = 0.05;
 
 our $pre_hl_word = qq|<span style="background-color:red;color:white;font-weight:bold;">|;
 our $post_hl_word = "</span>";

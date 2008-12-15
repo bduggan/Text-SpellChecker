@@ -18,3 +18,7 @@ Revision history for Perl extension Text::SpellChecker.
     - cached Text::Aspell object
     - made suggestions() context-aware
 
+0.05  Mon Dec 15 2008
+    - skip some tests when missing English dictionary
+    - added license
+
