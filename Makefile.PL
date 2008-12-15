@@ -8,6 +8,7 @@ WriteMakefile(
         'Storable' => '1',
         'MIME::Base64' => '1'
                          }, 
+    LICENSE            => 'perl',
     ($] >= 5.005 ?   
       ( AUTHOR         => 'Brian Duggan <bduggan@matatu.org>') : ()),
 );
