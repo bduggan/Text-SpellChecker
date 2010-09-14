@@ -1,12 +1,7 @@
 #########################
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 BEGIN { use_ok('Text::SpellChecker') };
-
-#########################
-
-# Insert your test code below, the Test::More module is use()ed here so read
-# its man page ( perldoc Test::More ) for help writing this test script.
 
 my $checker = Text::SpellChecker->new(text => "Foor score and seevn yeers ago");
 ok($checker, 'object creation' );
@@ -31,8 +26,10 @@ SKIP: {
 };
 
 my $original = Text::SpellChecker->new(from_frozen => $checker->serialize);
+my $nother = Text::SpellChecker->new_from_frozen($checker->serialize);
 
 delete $checker->{aspell};  # 'cause the freezing don't carry over
                             # the Text::Aspell object
 ok(eq_hash($original,$checker),'freezing, thawing');
+ok(eq_hash($nother,$checker),'freezing, thawing');
 

@@ -154,7 +154,7 @@ use MIME::Base64;
 use warnings;
 use strict;
 
-our $VERSION = 0.05;
+our $VERSION = 0.06;
 
 our $pre_hl_word = qq|<span style="background-color:red;color:white;font-weight:bold;">|;
 our $post_hl_word = "</span>";
@@ -211,10 +211,13 @@ sub replace_all {
 # Alternative handy constructor using serialized object.
 #
 sub new_from_frozen {
-    my $self = shift;
+    my $class = shift;
     my $frozen = shift;
-    $self = thaw(decode_base64($frozen)) or croak "Couldn't unthaw $frozen";
-    return $self;    
+    my $self = thaw(decode_base64($frozen)) or croak "Couldn't unthaw $frozen";
+    unless (ref $self =~ /Spellchecker/i) {
+        bless $self, $class;
+    }
+    return $self;
 }
 
 #
