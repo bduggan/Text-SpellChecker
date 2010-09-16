@@ -28,8 +28,8 @@ SKIP: {
 my $original = Text::SpellChecker->new(from_frozen => $checker->serialize);
 my $nother = Text::SpellChecker->new_from_frozen($checker->serialize);
 
-delete $checker->{aspell};  # 'cause the freezing don't carry over
-                            # the Text::Aspell object
+delete $checker->{aspell};
+delete $checker->{hunspell};
 ok(eq_hash($original,$checker),'freezing, thawing');
 ok(eq_hash($nother,$checker),'freezing, thawing');
 

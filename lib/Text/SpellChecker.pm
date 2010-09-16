@@ -60,12 +60,13 @@ Text::SpellChecker - OO interface for spell-checking a block of text
 
 =head1 DESCRIPTION
 
-This module is built on Text::Aspell, but adds some of the functionality 
-provided by the internal gnu aspell API.  This allows one to deal with blocks 
-of text, rather than just words.  For instance, we provide methods for
-iterating through the text, serializing the object (thus remembering where
-we left off), and highlighting the current misspelled word within the
-text.
+This module is a thin layer above either Text::Aspell or Text::Hunspell (preferring
+the latter if available), and allows one to spellcheck a body of text.
+
+Whereas Text::(Hu|A)spell deals with words, Text::Spellchecker deals with blocks of text.
+For instance, we provide methods for iterating through the text, serializing the object (thus
+remembering where we left off), and highlighting the current misspelled word within
+the text.
 
 =head1 METHODS
 
@@ -125,6 +126,22 @@ applied).
 Returns the text, but with the current word surrounded by $Text::SpellChecker::pre_hl_word and
 $Text::SpellChecker::post_hl_word.
 
+=head1 CONFIGURATION OPTIONS
+
+=item $Text::SpellChecker::pre_hl_word
+
+Set this to control the highlighting of a misspelled word.
+
+=item $Text::SpellChecker::post_hl_word
+
+Set this to control the highlighting of a misspelled word.
+
+=item $Text::SpellCheckerDictionaryPath{Hunspell}
+
+Set this to the hunspell dictionary path.  By default /usr/share/hunspell.
+
+This directory should have $lang.dic and $lang.aff files.
+ 
 =back
 
 =head1 LICENSE
@@ -138,7 +155,7 @@ Add word to custom dictionary
 
 =head1 SEE ALSO
 
-Text::Aspell
+Text::Aspell, Text::Hunspell
 
 =head1 AUTHOR
 
@@ -148,16 +165,25 @@ Brian Duggan <bduggan@matatu.org>
 
 package Text::SpellChecker;
 use Carp;
-use Text::Aspell;
 use Storable qw(freeze thaw);
 use MIME::Base64;
 use warnings;
 use strict;
 
-our $VERSION = 0.06;
+our $VERSION = 0.07;
 
 our $pre_hl_word = qq|<span style="background-color:red;color:white;font-weight:bold;">|;
 our $post_hl_word = "</span>";
+our %SpellersAvailable;
+BEGIN {
+    %SpellersAvailable = (
+        Aspell   => do { eval{require Text::Aspell};   $@ ? 0 : 1},
+        Hunspell => do { eval{require Text::Hunspell}; $@ ? 0 : 1},
+    );
+}
+our %DictionaryPath = (
+    Hunspell => q[/usr/share/hunspell]
+);
 
 #
 # new
@@ -230,7 +256,7 @@ sub next_word {
     my $self = shift;
     pos $self->{text} = $self->{position};
     my $word;
-    my $sp = $self->_aspell;
+    my $sp = $self->_hunspell || $self->_aspell;
     while ($self->{text} =~ m/([a-zA-Z]+(?:'[a-zA-Z]+)?)/g) {
         $word = $1;
         next if $self->{ignore_list}{$word};
@@ -250,6 +276,7 @@ sub next_word {
 #
 sub _aspell {
     my $self = shift;
+    return unless $SpellersAvailable{Aspell};
 
     unless ( $self->{aspell} ) {
         $self->{aspell} = Text::Aspell->new;
@@ -258,6 +285,23 @@ sub _aspell {
     }
 
     return $self->{aspell};
+}
+
+sub _hunspell {
+    my $self = shift;
+    return unless $SpellersAvailable{Hunspell};
+    return unless -d $DictionaryPath{Hunspell};
+    my $lang = $self->{lang} || "en_US";
+    my $dic = sprintf("%s/%s.dic", $DictionaryPath{Hunspell}, $lang );
+    my $aff = sprintf("%s/%s.aff", $DictionaryPath{Hunspell}, $lang );
+    return unless -e $dic;
+    return unless -e $aff;
+
+    unless ( $self->{hunspell} ) {
+        $self->{hunspell} = Text::Hunspell->new($aff,$dic);
+    }
+
+    return $self->{hunspell};
 }
 
 #
@@ -310,10 +354,10 @@ sub serialize {
    # remove mention of Aspell object, if any
    my %copy = %$self;
    delete $copy{aspell};
+   delete $copy{hunspell};
 
    return encode_base64 freeze \%copy;
 }
- 
 
 1;
 

@@ -1,13 +1,18 @@
 use ExtUtils::MakeMaker;
 
+my $speller = "Text::Aspell";
+
+eval { require Text::Hunspell };
+$speller = "Text::Hunspell" unless $@;
+
 WriteMakefile(
     NAME              => 'Text::SpellChecker',
     VERSION_FROM      => 'lib/Text/SpellChecker.pm', 
     PREREQ_PM         => {
-        'Text::Aspell' => '0.04',
-        'Storable' => '1',
-        'MIME::Base64' => '1'
-                         }, 
+        $speller       => 0,
+        'Storable'     => 0,
+        'MIME::Base64' => 0
+    },
     LICENSE            => 'perl',
     ($] >= 5.005 ?   
       ( AUTHOR         => 'Brian Duggan <bduggan@matatu.org>') : ()),
