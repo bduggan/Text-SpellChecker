@@ -22,3 +22,9 @@ Revision history for Perl extension Text::SpellChecker.
     - skip some tests when missing English dictionary
     - added license
 
+0.06  Tue Sep 14 2010
+    - made deserialization accept non-blessed refs 
+
+0.07  Wed Sep 15 2010
+    - optional hunspell support
+

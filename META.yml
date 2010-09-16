@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Text-SpellChecker
-version:            0.06
+version:            0.07
 abstract:           ~
 author:
     - Brian Duggan <bduggan@matatu.org>
@@ -11,9 +11,9 @@ configure_requires:
 build_requires:
     ExtUtils::MakeMaker:  0
 requires:
-    MIME::Base64:  1
-    Storable:      1
-    Text::Aspell:  0.04
+    MIME::Base64:    0
+    Storable:        0
+    Text::Hunspell:  0
 no_index:
     directory:
         - t
