@@ -170,7 +170,7 @@ use MIME::Base64;
 use warnings;
 use strict;
 
-our $VERSION = 0.07;
+our $VERSION = 0.08;
 
 our $pre_hl_word = qq|<span style="background-color:red;color:white;font-weight:bold;">|;
 our $post_hl_word = "</span>";

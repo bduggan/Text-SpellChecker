@@ -7,6 +7,7 @@ my $checker = Text::SpellChecker->new(text => "Foor score and seevn yeers ago");
 ok($checker, 'object creation' );
 
 SKIP: {
+    skip 'Text::Aspell not installed', 4 unless $Text::SpellChecker::SpellersAvailable{Aspell};
     skip 'English dictionary not installed', 4 
         unless (grep /^en/, Text::Aspell->new()->list_dictionaries) &&
                 Text::Aspell->new()->get_option('lang') =~ /^en/;
