@@ -3,7 +3,7 @@
 use Test::More tests => 8;
 BEGIN { use_ok('Text::SpellChecker') };
 
-my $checker = Text::SpellChecker->new(text => "Foor score and seevn yeers ago");
+my $checker = Text::SpellChecker->new(text => "Foor score and seevn yeers ago", lang => "en_US" );
 ok($checker, 'object creation' );
 
 SKIP: {

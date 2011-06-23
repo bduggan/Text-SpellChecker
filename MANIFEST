@@ -1,7 +1,8 @@
 Changes
-Makefile.PL
-MANIFEST
-README
-t/Text-SpellChecker.t
 lib/Text/SpellChecker.pm
-META.yml                                 Module meta-data (added by MakeMaker)
+Makefile.PL
+MANIFEST			This list of files
+META.yml
+README
+t/aspell.t
+t/hunspell.t
