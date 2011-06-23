@@ -2,7 +2,7 @@
 
 Text::SpellChecker - OO interface for spell-checking a block of text
 
-=head1 SYNOPSIS
+head1 SYNOPSIS
 
     use Text::SpellChecker;
     ($Text::SpellChecker::pre_hl_word,
@@ -76,6 +76,8 @@ the text.
 
 Send either the text or a serialized object to the constructor.  
 Optionally, the language of the text can also be passed.
+If no language is passed, $ENV{LANG} will be used, if it is set.
+If it is not set, the default language will be "en_US".
 
 =item $checker = new_from_frozen($serialized_data)
 
@@ -170,7 +172,7 @@ use MIME::Base64;
 use warnings;
 use strict;
 
-our $VERSION = 0.08;
+our $VERSION = 0.09;
 
 our $pre_hl_word = qq|<span style="background-color:red;color:white;font-weight:bold;">|;
 our $post_hl_word = "</span>";
@@ -180,6 +182,9 @@ BEGIN {
         Aspell   => do { eval{require Text::Aspell};   $@ ? 0 : 1},
         Hunspell => do { eval{require Text::Hunspell}; $@ ? 0 : 1},
     );
+    unless (grep { $_ } values %SpellersAvailable) {
+        die "Could not load Text::Aspell or Text::Hunspell.  At least one must be installed";
+    };
 }
 our %DictionaryPath = (
     Hunspell => q[/usr/share/hunspell]
@@ -256,7 +261,7 @@ sub next_word {
     my $self = shift;
     pos $self->{text} = $self->{position};
     my $word;
-    my $sp = $self->_hunspell || $self->_aspell;
+    my $sp = $self->_hunspell || $self->_aspell || die "Could not make a speller with Text::Hunspell or Text::Aspell.";
     while ($self->{text} =~ m/([a-zA-Z]+(?:'[a-zA-Z]+)?)/g) {
         $word = $1;
         next if $self->{ignore_list}{$word};
@@ -290,12 +295,23 @@ sub _aspell {
 sub _hunspell {
     my $self = shift;
     return unless $SpellersAvailable{Hunspell};
-    return unless -d $DictionaryPath{Hunspell};
-    my $lang = $self->{lang} || "en_US";
+    unless ( -d $DictionaryPath{Hunspell} ){
+        warn "Could not find hunspell dictionary directory $DictionaryPath{Hunspell}.";
+        return;
+    }
+    my $env_lang;
+    ($env_lang) = $ENV{LANG} =~ /^([^\.]*)/ if $ENV{LANG};
+    my $lang = $self->{lang} || $env_lang || "en_US";
     my $dic = sprintf("%s/%s.dic", $DictionaryPath{Hunspell}, $lang );
     my $aff = sprintf("%s/%s.aff", $DictionaryPath{Hunspell}, $lang );
-    return unless -e $dic;
-    return unless -e $aff;
+    -e $dic or do {
+        warn "Could not find $dic";
+        return;
+    };
+    -e $aff or do {
+        warn "could not find $aff";
+        return;
+    };
 
     unless ( $self->{hunspell} ) {
         $self->{hunspell} = Text::Hunspell->new($aff,$dic);
