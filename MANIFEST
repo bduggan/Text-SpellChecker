@@ -6,3 +6,4 @@ META.yml
 README
 t/aspell.t
 t/hunspell.t
+t/pod.t

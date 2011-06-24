@@ -2,7 +2,7 @@
 
 Text::SpellChecker - OO interface for spell-checking a block of text
 
-head1 SYNOPSIS
+=head1 SYNOPSIS
 
     use Text::SpellChecker;
     ($Text::SpellChecker::pre_hl_word,
@@ -128,7 +128,11 @@ applied).
 Returns the text, but with the current word surrounded by $Text::SpellChecker::pre_hl_word and
 $Text::SpellChecker::post_hl_word.
 
+=back
+
 =head1 CONFIGURATION OPTIONS
+
+=over
 
 =item $Text::SpellChecker::pre_hl_word
 
@@ -172,7 +176,7 @@ use MIME::Base64;
 use warnings;
 use strict;
 
-our $VERSION = 0.09;
+our $VERSION = '0.11';
 
 our $pre_hl_word = qq|<span style="background-color:red;color:white;font-weight:bold;">|;
 our $post_hl_word = "</span>";

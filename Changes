@@ -31,7 +31,10 @@ Revision history for Perl extension Text::SpellChecker.
 0.08
     - Allow aspell to be missing
 
-0.09  Thu Jun 23  2011
+0.09  Thu Jun 23 2011
     - Better tests, use of LANG
     - Compile time check for at least one speller.
+
+0.11 Fri Jun 24 2011
+    - pod fixes and pod test
 
