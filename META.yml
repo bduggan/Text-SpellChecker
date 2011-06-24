@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Text-SpellChecker
-version:            0.09
+version:            0.11
 abstract:           ~
 author:
     - Brian Duggan <bduggan@matatu.org>
