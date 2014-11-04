@@ -1,6 +1,7 @@
 #########################
 
-use Test::More tests => 8;
+use utf8;
+use Test::More tests => 9;
 BEGIN { use_ok('Text::SpellChecker') };
 
 my $checker = Text::SpellChecker->new(text => "Foor score and seevn yeers ago", lang => "en_US" );
@@ -24,6 +25,14 @@ SKIP: {
     $checker->replace(new_word => 'seven');
 
     ok($checker->text =~ /score and seven/, 'replacement');
+
+    my $text = "The coördinator will be leading the session";
+    my $unichecker = Text::SpellChecker->new(text => $text );
+    my @words = split / /, $text;
+    my %words = map { $_ => 1 } @words;
+    while (my $word = $unichecker->next_word) {
+        ok $words{$word}, "$word is one of the words in $text" or diag explain [ $word, \%words];
+    }
 };
 
 my $original = Text::SpellChecker->new(from_frozen => $checker->serialize);
