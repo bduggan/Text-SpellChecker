@@ -1,0 +1,6 @@
+Makefile
+pm_to_blib
+scratch.pl
+scratch.txt
+*.old
+*.tar.gz
