@@ -4,3 +4,4 @@ scratch.pl
 scratch.txt
 *.old
 *.tar.gz
+*.bak
