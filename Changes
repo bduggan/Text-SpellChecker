@@ -38,3 +38,5 @@ Revision history for Perl extension Text::SpellChecker.
 0.11 Fri Jun 24 2011
     - pod fixes and pod test
 
+0.12 Mon Nov 3 2014
+    - Fixes for unicode letters (thanks, Chankey Pathak)
