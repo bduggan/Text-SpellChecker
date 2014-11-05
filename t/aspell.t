@@ -2,6 +2,7 @@
 
 use utf8;
 use Test::More tests => 9;
+use strict;
 BEGIN { use_ok('Text::SpellChecker') };
 
 my $checker = Text::SpellChecker->new(text => "Foor score and seevn yeers ago", lang => "en_US" );
@@ -26,13 +27,15 @@ SKIP: {
 
     ok($checker->text =~ /score and seven/, 'replacement');
 
-    my $text = "The coördinator will be leading the session";
+    my $text = "The coördinator coöror will be leading the coöditer session";
     my $unichecker = Text::SpellChecker->new(text => $text );
     my @words = split / /, $text;
     my %words = map { $_ => 1 } @words;
+    my @found;
     while (my $word = $unichecker->next_word) {
-        ok $words{$word}, "$word is one of the words in $text" or diag explain [ $word, \%words];
+        push @found, $word;
     }
+    ok ((!grep !$words{$_}, @found), "split utf8 text into words");
 };
 
 my $original = Text::SpellChecker->new(from_frozen => $checker->serialize);

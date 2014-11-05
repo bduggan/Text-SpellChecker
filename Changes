@@ -40,3 +40,6 @@ Revision history for Perl extension Text::SpellChecker.
 
 0.12 Mon Nov 3 2014
     - Fixes for unicode letters (thanks, Chankey Pathak)
+
+0.13 Wed Nov 5 2014
+    - Fixed tests : some dictionaries apparently have coördinator 
