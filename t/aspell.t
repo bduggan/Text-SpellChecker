@@ -1,7 +1,7 @@
 #########################
 
 use utf8;
-use Test::More tests => 9;
+use Test::More tests => 10;
 use strict;
 BEGIN { use_ok('Text::SpellChecker') };
 
@@ -9,8 +9,8 @@ my $checker = Text::SpellChecker->new(text => "Foor score and seevn yeers ago", 
 ok($checker, 'object creation' );
 
 SKIP: {
-    skip 'Text::Aspell not installed', 5 unless $Text::SpellChecker::SpellersAvailable{Aspell};
-    skip 'English dictionary not installed', 5 
+    skip 'Text::Aspell not installed', 6 unless $Text::SpellChecker::SpellersAvailable{Aspell};
+    skip 'English dictionary not installed', 6 
         unless (grep /^en/, Text::Aspell->new()->list_dictionaries) &&
                 Text::Aspell->new()->get_option('lang') =~ /^en/;
 
@@ -36,6 +36,10 @@ SKIP: {
         push @found, $word;
     }
     ok ((!grep !$words{$_}, @found), "split utf8 text into words");
+
+    my $fast_checker = Text::SpellChecker->new(text => "The qick brown fox");
+    $fast_checker->set_options(aspell => { "sug-mode" => "fast" } );
+    is $fast_checker->next_word, 'qick', 'fast checker worked';
 };
 
 my $original = Text::SpellChecker->new(from_frozen => $checker->serialize);

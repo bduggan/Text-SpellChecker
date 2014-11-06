@@ -72,12 +72,14 @@ the text.
 
 =over 4
 
-=item $checker = Text::SpellChecker->new(text => $text, from_frozen => $serialized_data, lang => $lang)
+=item $checker = Text::SpellChecker->new(text => $text, from_frozen => $serialized_data, lang => $lang, options => $options)
 
 Send either the text or a serialized object to the constructor.  
 Optionally, the language of the text can also be passed.
 If no language is passed, $ENV{LANG} will be used, if it is set.
 If it is not set, the default language will be "en_US".
+
+$options are checker-specific options (see below).
 
 =item $checker = new_from_frozen($serialized_data)
 
@@ -127,6 +129,12 @@ applied).
 
 Returns the text, but with the current word surrounded by $Text::SpellChecker::pre_hl_word and
 $Text::SpellChecker::post_hl_word.
+
+=item $checker->set_options
+
+Set checker-specific options.  Currently only aspell supports setting options, e.g.
+
+    $checker->set_options(aspell => { "extra-dicts" => "nl" } );
 
 =back
 
@@ -208,7 +216,13 @@ sub new {
             text => $args{text},
             ignore_list => {},    # keys of this hash are words to be ignored
             ( lang => $args{lang} ) x !!$args{lang},
+            ( options => $args{options} ) x !!$args{options},
     }, $class;
+}
+
+sub set_options {
+    my ($self, %opts) = @_;
+    $self->{options} = \%opts;
 }
 
 sub reset {
@@ -291,6 +305,9 @@ sub _aspell {
         $self->{aspell} = Text::Aspell->new;
         $self->{aspell}->set_option( lang => $self->{lang} ) 
                 if $self->{lang};
+        if (my $opts = $self->{options}{aspell}) {
+            $self->{aspell}->set_option( $_ => $opts->{$_} ) for keys %$opts
+        }
     }
 
     return $self->{aspell};
